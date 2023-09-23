@@ -108,7 +108,7 @@ public class LexicalAnalysis implements AutoCloseable {
         int state = 1;
         while (state != 14 && state != 15) {
             int c = getc();
-            System.out.printf(" [%02d, %03d ('%c')]\n", state, c, (char) c);
+            // System.out.printf(" [%02d, %03d ('%c')]\n", state, c, (char) c);
 
             switch (state) {
                 case 1:

@@ -172,6 +172,22 @@ public class SyntaticAnalysis {
 
     // <let> ::= let <name> ':' <type> '=' <expr> { ',' <name> ':' <type> '=' <expr> } [';']
     private void procLet() {
+        eat(Token.Type.LET);
+        procName();
+        eat(Token.Type.COLON);
+        procType();
+        eat(Token.Type.ASSIGN);
+        procExpr();
+
+        while(match(Token.Type.COMMA)) {
+            procName();
+            eat(Token.Type.COLON);
+            procType();
+            eat(Token.Type.ASSIGN);
+            procExpr();
+        }
+
+        match(Token.Type.SEMICOLON);
     }
 
     // <print> ::= (print | println) '(' <expr> ')' [';']
@@ -217,6 +233,20 @@ public class SyntaticAnalysis {
 
     // <for> ::= for ( <name> | ( var | let ) <name> ':' <type> ) in <expr> <cmd>
     private void procFor() {
+        eat(Token.Type.FOR);
+        if(check(Token.Type.NAME)){
+            procName();
+        } else if(match(Token.Type.VAR, Token.Type.LET)){
+            procName();
+            eat(Token.Type.COLON);
+            procType();
+        } else {
+            reportError();
+        }
+
+        eat(Token.Type.IN);
+        procExpr();
+        procCmd();
     }
 
     // <assign> ::= [ <expr> '=' ] <expr> [ ';' ]
@@ -299,8 +329,9 @@ public class SyntaticAnalysis {
     // <rel> ::= <arith> [ ( '<' | '>' | '<=' | '>=' | '==' | '!=' ) <arith> ]
     private void procRel() {
         procArith();
-
-        // TODO: complete me!
+        if(match(Token.Type.LOWER_THAN, Token.Type.GREATER_THAN, Token.Type.LOWER_EQUAL, Token.Type.GREATER_EQUAL, Token.Type.EQUALS, Token.Type.NOT_EQUALS)){
+            procArith();
+        }
     }
 
     // <arith> ::= <term> { ( '+' | '-' ) <term> }
@@ -315,7 +346,9 @@ public class SyntaticAnalysis {
     private void procTerm() {
         procPrefix();
 
-        // TODO: complete me!
+        while(match(Token.Type.MUL, Token.Type.DIV)){
+            procPrefix();
+        }
     }
 
     // <prefix> ::= [ '!' | '-' ] <factor>
@@ -401,6 +434,14 @@ public class SyntaticAnalysis {
 
     // <cast> ::= ( toBool | toInt | toFloat | toChar | toString ) '(' <expr> ')'
     private void procCast() {
+        if(match(Token.Type.TO_BOOL, Token.Type.TO_INT, Token.Type.TO_FLOAT, Token.Type.TO_CHAR, Token.Type.TO_STRING)){
+            // Do nothing.
+        } else {
+            reportError();
+        }
+        eat(Token.Type.OPEN_PAR);
+        procExpr();
+        eat(Token.Type.CLOSE_PAR);
     }
 
     // <array> ::= <arraytype> '(' [ <expr> { ',' <expr> } ] ')'
@@ -418,6 +459,20 @@ public class SyntaticAnalysis {
 
     // <dict> ::= <dictype> '(' [ <expr> ':' <expr> { ',' <expr> ':' <expr> } ] ')'
     private void procDict() {
+        procDictType();
+        eat(Token.Type.OPEN_PAR);
+        if(!check(Token.Type.CLOSE_PAR)){
+            procExpr();
+            eat(Token.Type.COMMA);
+            procExpr();
+            
+            while(match(Token.Type.COMMA)){
+                procExpr();
+                eat(Token.Type.COMMA);
+                procExpr();
+            }
+        }
+        eat(Token.Type.CLOSE_PAR);
     }
 
     // <lvalue> ::= <name> { '[' <expr> ']' }
@@ -431,14 +486,40 @@ public class SyntaticAnalysis {
 
     // <function> ::= { '.' ( <fnoargs> | <fonearg> ) }
     private void procFunction() {
+        while(match(Token.Type.DOT)) {
+            if(check(Token.Type.COUNT, Token.Type.EMPTY, Token.Type.KEYS, Token.Type.VALUES)) {
+                procFNoArgs();
+            } else if (check(Token.Type.APPEND, Token.Type.CONTAINS)) {
+                procFOneArg();
+            } else {
+                reportError();
+            }
+        }
     }
 
     // <fnoargs> ::= ( count | empty | keys | values ) '(' ')'
     private void procFNoArgs() {
+        if(match(Token.Type.COUNT, Token.Type.EMPTY, Token.Type.KEYS, Token.Type.VALUES)){
+            // Do nothing.
+        } else {
+            reportError();
+        }
+        
+        eat(Token.Type.OPEN_PAR);
+        eat(Token.Type.CLOSE_PAR);
     }
 
     // <fonearg> ::= ( append | contains ) '(' <expr> ')'
     private void procFOneArg() {
+        if(match(Token.Type.APPEND, Token.Type.CONTAINS)){
+            // Do nothing.
+        } else {
+            reportError();
+        }
+
+        eat(Token.Type.OPEN_PAR);
+        procExpr();
+        eat(Token.Type.CLOSE_PAR);
     }
 
     private void procName() {
