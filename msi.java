@@ -1,7 +1,3 @@
-import static lexical.Token.Type.END_OF_FILE;
-import static lexical.Token.Type.INVALID_TOKEN;
-import static lexical.Token.Type.UNEXPECTED_EOF;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -10,7 +6,7 @@ import java.io.InputStreamReader;
 
 import error.LanguageException;
 import lexical.LexicalAnalysis;
-import lexical.Token;
+import syntatic.SyntaticAnalysis;
 
 public class msi {
     public static void main(String[] args) {
@@ -55,20 +51,20 @@ public class msi {
         try (LexicalAnalysis l = new LexicalAnalysis(is)) {
             // O código a seguir é usado apenas para testar o analisador léxico.
             // TODO: depois de pronto, comentar o código abaixo.
-            Token lex;
-            do {
-                lex = l.nextToken();
-                System.out.printf("%02d: (\"%s\", %s, %s)\n", lex.line,
-                    lex.lexeme, lex.type, lex.literal);
-            } while (lex.type != END_OF_FILE &&
-                     lex.type != INVALID_TOKEN &&
-                     lex.type != UNEXPECTED_EOF);
+            // Token lex;
+            // do {
+            //     lex = l.nextToken();
+            //     System.out.printf("%02d: (\"%s\", %s, %s)\n", lex.line,
+            //         lex.lexeme, lex.type, lex.literal);
+            // } while (lex.type != END_OF_FILE &&
+            //          lex.type != INVALID_TOKEN &&
+            //          lex.type != UNEXPECTED_EOF);
 
-            // // O código a seguir é dado para testar o interpretador.
-            // // TODO: descomentar depois que o analisador léxico estiver OK.
-            // SyntaticAnalysis s = new SyntaticAnalysis(l);
-            // Command cmd = s.process();
-            // Interpreter.interpret(cmd);
+            // O código a seguir é dado para testar o interpretador.
+            // TODO: descomentar depois que o analisador léxico estiver OK.
+            SyntaticAnalysis s = new SyntaticAnalysis(l);
+            /*Command cmd =*/ s.process();
+            //Interpreter.interpret(cmd);
         } catch (LanguageException e) {
             System.out.println(e.getMessage());
         }

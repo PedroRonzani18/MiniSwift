@@ -21,9 +21,9 @@ public class LexicalAnalysis implements AutoCloseable {
 
         // SYMBOLS
         keywords.put(".", Token.Type.DOT);
-        keywords.put(",", Token.Type.COMMA);
         keywords.put(":", Token.Type.COLON);
         keywords.put(";", Token.Type.SEMICOLON);
+        keywords.put(",", Token.Type.COMMA);
         keywords.put("(", Token.Type.OPEN_PAR);
         keywords.put(")", Token.Type.CLOSE_PAR);
         keywords.put("[", Token.Type.OPEN_BRA);
@@ -40,8 +40,8 @@ public class LexicalAnalysis implements AutoCloseable {
         keywords.put(">", Token.Type.GREATER_THAN);
         keywords.put("<=", Token.Type.LOWER_EQUAL);
         keywords.put(">=", Token.Type.GREATER_EQUAL);
-        keywords.put("==", Token.Type.EQUAL);
-        keywords.put("!=", Token.Type.NOT_EQUAL);
+        keywords.put("==", Token.Type.EQUALS);
+        keywords.put("!=", Token.Type.NOT_EQUALS);
         keywords.put("+", Token.Type.ADD);
         keywords.put("-", Token.Type.SUB);
         keywords.put("*", Token.Type.MUL);
@@ -74,7 +74,7 @@ public class LexicalAnalysis implements AutoCloseable {
         keywords.put("toInt", Token.Type.TO_INT);
         keywords.put("toFloat", Token.Type.TO_FLOAT);
         keywords.put("toChar", Token.Type.TO_CHAR);
-        keywords.put("toString", Token.Type.TO_STRING);
+        keywords.put("toString ", Token.Type.TO_STRING);
         keywords.put("count", Token.Type.COUNT);
         keywords.put("empty", Token.Type.EMPTY);
         keywords.put("keys", Token.Type.KEYS);
@@ -111,11 +111,11 @@ public class LexicalAnalysis implements AutoCloseable {
 
             switch (state) {
                 case 1:
-                    if (c == ' ' || c == '\t' || c == '\r' ) {
+                    if (c == ' ' || c == '\t' || c == '\r') {
                         state = 1;
                     } else if (c == '\n') {
-                        this.line++;
                         state = 1;
+                        line++;
                     } else if (c == '/') {
                         state = 2;
                     } else if (c == '=' || c == '!' || c == '<' || c == '>') {
@@ -131,7 +131,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         token.lexeme += (char) c;
                         state = 14;
                     } else if (c == '_' ||
-                            Character.isLetter(c)) {
+                               Character.isLetter(c)) {
                         token.lexeme += (char) c;
                         state = 8;
                     } else if (Character.isDigit(c)) {
@@ -157,7 +157,6 @@ public class LexicalAnalysis implements AutoCloseable {
                         token.lexeme = "/";
                         state = 14;
                     }
-
                     break;
                 case 3:
                     break;
@@ -179,10 +178,10 @@ public class LexicalAnalysis implements AutoCloseable {
                         state = 14;
                     } else {
                         ungetc(c);
-                        token.type = Token.Type.INVALID_TOKEN;
                         state = 15;
+                        token.type = Token.Type.INVALID_TOKEN;
                     }
-
+    
                     break;
                 case 7:
                     break;
@@ -196,7 +195,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         ungetc(c);
                         state = 14;
                     }
-    
+
                     break;
                 case 9:
                     if (Character.isDigit(c)) {
@@ -216,34 +215,37 @@ public class LexicalAnalysis implements AutoCloseable {
                 case 10:
                     break;
                 case 11:
-                    if (c == -1) {
-                        token.type = Token.Type.UNEXPECTED_EOF;
-                        state = 15;
-                    } else if (c != '\'') {
-                        if (c == '\n')
-                            line++;
-
-                        token.lexeme += (char) c;
-                        state = 12;
+                    if (c != '\'') {
+                        if (c == -1) {
+                            token.type = Token.Type.UNEXPECTED_EOF;
+                            state = 15;
+                        } else {
+                            if (c == '\n')
+                                line++;
+            
+                            token.lexeme += (char) c;
+                            state = 12;
+                        }
                     } else {
+                        token.lexeme += (char) c;
                         token.type = Token.Type.INVALID_TOKEN;
                         state = 15;
                     }
-    
+
                     break;
                 case 12:
                     if (c == -1) {
                         token.type = Token.Type.UNEXPECTED_EOF;
                         state = 15;
                     } else if (c == '\'') {
-                        token.literal = new Value(CharType.instance(), token.lexeme.charAt(0));
                         token.type = Token.Type.CHAR_LITERAL;
+                        token.literal = new Value(CharType.instance(), token.lexeme.charAt(0));
                         state = 15;
                     } else {
                         token.type = Token.Type.INVALID_TOKEN;
                         state = 15;
                     }
-        
+
                     break;
                 case 13:
                     break;
