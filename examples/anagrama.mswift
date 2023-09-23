@@ -1,0 +1,37 @@
+/* Read a word */
+print("Entre com uma palavra: ")
+let word : String = read()
+
+var ok : Bool = true
+while ok {
+    /* Build the char map for this word */
+    let charmap : Dict<Char,Int> = Dict<Char,Int>()
+    for let c : Char in word
+        if ((c >= 'A' && c <= 'Z') || (c >= 'A' && c <= 'Z'))
+            charmap[c] = charmap.keys().contains(c) ? charmap[c]+1 : 1
+
+    /* Read an anagram of this word */
+    print("Entre com um anagrama de '" + word + "': ")
+    let anagram : String = read()
+
+    /* Check its properties */
+    for let c : Char in anagram
+        if ((c >= 'A' && c <= 'Z') || (c >= 'A' && c <= 'Z'))
+            charmap[c] = charmap.keys().contains(c) ? charmap[c]-1 : -1
+
+    /* Build a report */
+    var report : String = ""
+    for let c : Char in charmap.keys() {
+        let n : Int = charmap[c]
+        if (n != 0)
+            report = report + toString(c) + "(" + toString(n) + ") "
+    }
+
+    /* Output the results */
+    if (report.empty())
+        println("  Okay")
+    else {
+        println("  Falha: " + report)
+        ok = false
+    }
+}
