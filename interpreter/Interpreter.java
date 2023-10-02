@@ -1,6 +1,8 @@
 package interpreter;
 
 import interpreter.command.Command;
+import interpreter.expr.Expr;
+import interpreter.value.Value;
 
 public class Interpreter {
 
@@ -15,6 +17,11 @@ public class Interpreter {
 
     public static void interpret(Command cmd) {
         cmd.execute();
+    }
+
+    public static void interpret(Expr expr) {
+        Value v = expr.expr();
+        System.out.println(v);
     }
 
 }

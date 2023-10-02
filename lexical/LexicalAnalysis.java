@@ -108,7 +108,8 @@ public class LexicalAnalysis implements AutoCloseable {
         int state = 1;
         while (state != 14 && state != 15) {
             int c = getc();
-            // System.out.printf(" [%02d, %03d ('%c')]\n", state, c, (char) c);
+            // System.out.printf(" [%02d, %03d ('%c')]\n",
+            // state, c, (char) c);
 
             switch (state) {
                 case 1:
@@ -152,6 +153,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         token.type = Token.Type.INVALID_TOKEN;
                         state = 15;
                     }
+
                     break;
                 case 2:
                     if (c == '*') {
@@ -184,6 +186,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         ungetc(c);
                         state = 14;
                     }
+
                     break;
                 case 6:
                     if (c == '&') {
@@ -194,6 +197,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         state = 15;
                         token.type = Token.Type.INVALID_TOKEN;
                     }
+
                     break;
                 case 7:
                     if (c == '|') {
@@ -213,6 +217,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         ungetc(c);
                         state = 14;
                     }
+
                     break;
                 case 9:
                     if (Character.isDigit(c)) {
@@ -227,6 +232,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         token.literal = new Value(IntType.instance(), toInt(token.lexeme));
                         state = 15;
                     }
+
                     break;
                 case 10:
                     if (Character.isDigit(c)) {
@@ -256,6 +262,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         token.type = Token.Type.INVALID_TOKEN;
                         state = 15;
                     }
+
                     break;
                 case 12:
                     if (c == -1) {
@@ -269,6 +276,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         token.type = Token.Type.INVALID_TOKEN;
                         state = 15;
                     }
+
                     break;
                 case 13: // L
                     if (c == -1) {
