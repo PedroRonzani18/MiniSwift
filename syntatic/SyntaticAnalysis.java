@@ -4,10 +4,21 @@ import static error.LanguageException.Error.InvalidLexeme;
 import static error.LanguageException.Error.UnexpectedEOF;
 import static error.LanguageException.Error.UnexpectedLexeme;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import error.LanguageException;
 import interpreter.Environment;
 import interpreter.Interpreter;
+import interpreter.command.BlocksCommand;
 import interpreter.command.Command;
+import interpreter.command.DumpCommand;
+import interpreter.command.PrintCommand;
+import interpreter.expr.ConstExpr;
+import interpreter.expr.Expr;
+import interpreter.expr.UnaryExpr;
+import interpreter.type.primitive.BoolType;
+import interpreter.value.Value;
 import lexical.LexicalAnalysis;
 import lexical.Token;
 
@@ -26,9 +37,9 @@ public class SyntaticAnalysis {
     }
 
     public Command process() {
-        procCode();
+        Command cmd = procCode();
         eat(Token.Type.END_OF_FILE);
-        return null;
+        return cmd;
     }
 
     private void advance() {
@@ -78,7 +89,10 @@ public class SyntaticAnalysis {
     }
 
     // <code> ::= { <cmd> }
-    private void procCode() {
+    private BlocksCommand procCode() {
+        int line = current.line;
+        List<Command> cmds = new ArrayList<Command>();
+
         while (check(Token.Type.OPEN_CUR,
                 Token.Type.VAR, Token.Type.LET,
                 Token.Type.PRINT, Token.Type.PRINTLN,
@@ -93,20 +107,25 @@ public class SyntaticAnalysis {
                 Token.Type.TO_INT, Token.Type.TO_FLOAT,
                 Token.Type.TO_CHAR, Token.Type.TO_STRING,
                 Token.Type.ARRAY, Token.Type.DICT, Token.Type.NAME)) {
-            procCmd();
+            Command cmd = procCmd();
+            cmds.add(cmd);
         }
+
+        BlocksCommand bcmd = new BlocksCommand(line, cmds);
+        return bcmd;
     }
 
     // <cmd> ::= <block> | <decl> | <print> | <dump> | <if> | <while> | <for> | <assign>
-    private void procCmd() {
+    private Command procCmd() {
+        Command cmd = null;
         if (check(Token.Type.OPEN_CUR)) {
             procBlock();
         } else if (check(Token.Type.VAR, Token.Type.LET)) {
             procDecl();
         } else if (check(Token.Type.PRINT, Token.Type.PRINTLN)) {
-            procPrint();
+            cmd = procPrint();
         } else if (check(Token.Type.DUMP)) {
-            procDump();
+            cmd = procDump();
         } else if (check(Token.Type.IF)) {
             procIf();
         } else if (check(Token.Type.WHILE)) {
@@ -126,6 +145,8 @@ public class SyntaticAnalysis {
         } else {
             reportError();
         }
+
+        return cmd;
     }
 
     // <block> ::= '{' <code> '}'
@@ -191,27 +212,36 @@ public class SyntaticAnalysis {
     }
 
     // <print> ::= (print | println) '(' <expr> ')' [';']
-    private void procPrint() {
+    private PrintCommand procPrint() {
+        boolean newline = false;
         if (match(Token.Type.PRINT, Token.Type.PRINTLN)) {
-            // Do nothing.
+            newline = (previous.type == Token.Type.PRINTLN);
         } else {
             reportError();
         }
+        int line = previous.line;
 
         eat(Token.Type.OPEN_PAR);
-        procExpr();
+        Expr expr = procExpr();
         eat(Token.Type.CLOSE_PAR);
 
         match(Token.Type.SEMICOLON);
+
+        PrintCommand pcmd = new PrintCommand(line, expr, newline);
+        return pcmd;
     }
 
     // <dump> ::= dump '(' <expr> ')' [';']
-    private void procDump() {
+    private DumpCommand procDump() {
         eat(Token.Type.DUMP);
+        int line = previous.line;
         eat(Token.Type.OPEN_PAR);
-        procExpr();
+        Expr expr = procExpr();
         eat(Token.Type.CLOSE_PAR);
         match(Token.Type.SEMICOLON);
+
+        DumpCommand dcmd = new DumpCommand(line, expr);
+        return dcmd;
     }
 
     // <if> ::= if <expr> <cmd> [ else <cmd> ]
@@ -309,75 +339,109 @@ public class SyntaticAnalysis {
     }
 
     // <expr> ::= <cond> [ '?' <expr> ':' <expr> ]
-    private void procExpr() {
-        procCond();
+    private Expr procExpr() {
+        Expr expr = procCond();
+
         if (match(Token.Type.TERNARY)) {
             procExpr();
             eat(Token.Type.COLON);
             procExpr();
         }
+
+        return expr;
     }
 
     // <cond> ::= <rel> { ( '&&' | '||' ) <rel> }
-    private void procCond() {
-        procRel();
+    private Expr procCond() {
+        Expr expr = procRel();
         while (match(Token.Type.AND, Token.Type.OR)) {
             procRel();
         }
+
+        return expr;
     }
 
     // <rel> ::= <arith> [ ( '<' | '>' | '<=' | '>=' | '==' | '!=' ) <arith> ]
-    private void procRel() {
-        procArith();
+    private Expr procRel() {
+        Expr expr = procArith();
+
         if(match(Token.Type.LOWER_THAN, Token.Type.GREATER_THAN, Token.Type.LOWER_EQUAL, Token.Type.GREATER_EQUAL, Token.Type.EQUALS, Token.Type.NOT_EQUALS)){
             procArith();
         }
+
+        return expr;
     }
 
     // <arith> ::= <term> { ( '+' | '-' ) <term> }
-    private void procArith() {
-        procTerm();
+    private Expr procArith() {
+        Expr expr = procTerm();
         while (match(Token.Type.ADD, Token.Type.SUB)) {
             procTerm();
         }
+
+        return expr;
     }
 
     // <term> ::= <prefix> { ( '*' | '/' ) <prefix> }
-    private void procTerm() {
-        procPrefix();
+    private Expr procTerm() {
+        Expr expr = procPrefix();
 
         while(match(Token.Type.MUL, Token.Type.DIV)){
             procPrefix();
         }
+
+        return expr;
     }
 
     // <prefix> ::= [ '!' | '-' ] <factor>
-    private void procPrefix() {
+    private Expr procPrefix() {
+        UnaryExpr.Op op = null;
+        int line = -1;
         if (match(Token.Type.NOT, Token.Type.SUB)) {
-            // Do nothing.
+            switch (previous.type) {
+                case NOT:
+                    op = UnaryExpr.Op.Not;
+                    break;
+                case SUB:
+                    op = UnaryExpr.Op.Neg;
+                    break;
+                default:
+                    reportError();
+            }
+
+            line = previous.line;
         }
 
-        procFactor();
+        Expr expr = procFactor();
+
+        if (op != null)
+            expr = new UnaryExpr(line, expr, op);
+
+        return expr;
     }
 
     // <factor> ::= ( '(' <expr> ')' | <rvalue> ) <function>
-    private void procFactor() {
+    private Expr procFactor() {
+        Expr expr = null;
         if (match(Token.Type.OPEN_PAR)) {
             procExpr();
             eat(Token.Type.CLOSE_PAR);
         } else {
-            procRValue();
+            expr = procRValue();
         }
 
         procFunction();
+
+        return expr;
     }
 
     // <rvalue> ::= <const> | <action> | <cast> | <array> | <dict> | <lvalue>
-    private void procRValue() {
+    private Expr procRValue() {
+        Expr expr = null;
         if (check(Token.Type.FALSE, Token.Type.TRUE,
                 Token.Type.INTEGER_LITERAL, Token.Type.FLOAT_LITERAL,
                 Token.Type.CHAR_LITERAL, Token.Type.STRING_LITERAL)) {
-            procConst();
+            expr = procConst();
         } else if (check(Token.Type.READ, Token.Type.RANDOM)) {
             procAction();
         } else if (check(Token.Type.TO_BOOL, Token.Type.TO_INT,
@@ -392,32 +456,50 @@ public class SyntaticAnalysis {
         } else {
             reportError();
         }
+
+        return expr;
     }
 
     // <const> ::= <bool> | <int> | <float> | <char> | <string>
-    private void procConst() {
+    private ConstExpr procConst() {
+        Value value = null;
         if (check(Token.Type.FALSE, Token.Type.TRUE)) {
-            procBool();
+            value = procBool();
         } else if (check(Token.Type.INTEGER_LITERAL)) {
-            procInt();
+            value = procInt();
         } else if (check(Token.Type.FLOAT_LITERAL)) {
-            procFloat();
+            value = procFloat();
         } else if (check(Token.Type.CHAR_LITERAL)) {
-            procChar();
+            value = procChar();
         } else if (check(Token.Type.STRING_LITERAL)) {
-            procString();
+            value = procString();
         } else {
             reportError();
         }
+
+        ConstExpr cexpr = new ConstExpr(previous.line, value);
+        return cexpr;
     }
 
     // <bool> ::= false | true
-    private void procBool() {
+    private Value procBool() {
+        Value value = null;
         if (match(Token.Type.FALSE, Token.Type.TRUE)) {
-            // Do nothing.
+            switch (previous.type) {
+                case FALSE:
+                    value = new Value(BoolType.instance(), false);
+                    break;
+                case TRUE:
+                    value = new Value(BoolType.instance(), true);
+                    break;
+                default:
+                    reportError();
+            }
         } else {
             reportError();
         }
+
+        return value;
     }
 
     // <action> ::= ( read  | random ) '(' ')'
@@ -526,20 +608,28 @@ public class SyntaticAnalysis {
         eat(Token.Type.NAME);
     }
 
-    private void procInt() {
+    private Value procInt() {
+        Value v = current.literal;
         eat(Token.Type.INTEGER_LITERAL);
+        return v;
     }
 
-    private void procFloat() {
+    private Value procFloat() {
+        Value v = current.literal;
         eat(Token.Type.FLOAT_LITERAL);
+        return v;
     }
 
-    private void procChar() {
+    private Value procChar() {
+        Value v = current.literal;
         eat(Token.Type.CHAR_LITERAL);
+        return v;
     }
 
-    private void procString() {
+    private Value procString() {
+        Value v = current.literal;
         eat(Token.Type.STRING_LITERAL);
+        return v;
     }
 
 }
