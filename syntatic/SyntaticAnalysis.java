@@ -10,6 +10,7 @@ import java.util.List;
 import error.LanguageException;
 import interpreter.Environment;
 import interpreter.Interpreter;
+import interpreter.command.AssignCommand;
 import interpreter.command.BlocksCommand;
 import interpreter.command.Command;
 import interpreter.command.DumpCommand;
@@ -17,8 +18,17 @@ import interpreter.command.PrintCommand;
 import interpreter.expr.BinaryExpr;
 import interpreter.expr.ConstExpr;
 import interpreter.expr.Expr;
+import interpreter.expr.SetExpr;
 import interpreter.expr.UnaryExpr;
+import interpreter.expr.Variable;
+import interpreter.type.Type;
+import interpreter.type.composed.ComposedType;
 import interpreter.type.primitive.BoolType;
+import interpreter.type.primitive.CharType;
+import interpreter.type.primitive.FloatType;
+import interpreter.type.primitive.IntType;
+import interpreter.type.primitive.PrimitiveType;
+import interpreter.type.primitive.StringType;
 import interpreter.value.Value;
 import lexical.LexicalAnalysis;
 import lexical.Token;
@@ -58,7 +68,7 @@ public class SyntaticAnalysis {
         }
     }
 
-    private boolean check(Token.Type... types) {
+    private boolean check(Token.Type ...types) {
         for (Token.Type type : types) {
             if (current.type == type)
                 return true;
@@ -67,7 +77,7 @@ public class SyntaticAnalysis {
         return false;
     }
 
-    private boolean match(Token.Type... types) {
+    private boolean match(Token.Type ...types) {
         if (check(types)) {
             advance();
             return true;
@@ -109,19 +119,19 @@ public class SyntaticAnalysis {
                 Token.Type.TO_CHAR, Token.Type.TO_STRING,
                 Token.Type.ARRAY, Token.Type.DICT, Token.Type.NAME)) {
             Command cmd = procCmd();
-            cmds.add(cmd);
+            if (cmd != null)
+                cmds.add(cmd);
         }
 
         BlocksCommand bcmd = new BlocksCommand(line, cmds);
         return bcmd;
     }
 
-    // <cmd> ::= <block> | <decl> | <print> | <dump> | <if> | <while> | <for> |
-    // <assign>
+    // <cmd> ::= <block> | <decl> | <print> | <dump> | <if> | <while> | <for> | <assign>
     private Command procCmd() {
         Command cmd = null;
         if (check(Token.Type.OPEN_CUR)) {
-            procBlock();
+            cmd = procBlock();
         } else if (check(Token.Type.VAR, Token.Type.LET)) {
             procDecl();
         } else if (check(Token.Type.PRINT, Token.Type.PRINTLN)) {
@@ -143,7 +153,7 @@ public class SyntaticAnalysis {
                 Token.Type.TO_INT, Token.Type.TO_FLOAT,
                 Token.Type.TO_CHAR, Token.Type.TO_STRING,
                 Token.Type.ARRAY, Token.Type.DICT, Token.Type.NAME)) {
-            procAssign();
+            cmd = procAssign();
         } else {
             reportError();
         }
@@ -152,10 +162,21 @@ public class SyntaticAnalysis {
     }
 
     // <block> ::= '{' <code> '}'
-    private void procBlock() {
+    private BlocksCommand procBlock() {
         eat(Token.Type.OPEN_CUR);
-        procCode();
-        eat(Token.Type.CLOSE_CUR);
+
+        Environment old = environment;
+        environment = new Environment(old);
+
+        BlocksCommand bcmd;
+        try {
+            bcmd = procCode();
+            eat(Token.Type.CLOSE_CUR);
+        } finally {
+            environment = old;
+        }
+
+        return bcmd;
     }
 
     // <decl> ::= <var> | <let>
@@ -169,13 +190,14 @@ public class SyntaticAnalysis {
         }
     }
 
-    // <var> ::= var <name> ':' <type> [ '=' <expr> ] { ',' <name> ':' <type> [ '='
-    // <expr> ] } [';']
+    // <var> ::= var <name> ':' <type> [ '=' <expr> ] { ',' <name> ':' <type> [ '=' <expr> ] } [';']
     private void procVar() {
         eat(Token.Type.VAR);
-        procName();
+        Token name = procName();
         eat(Token.Type.COLON);
-        procType();
+        Type type = procType();
+
+        Variable v = this.environment.declare(name, type, false);
 
         if (match(Token.Type.ASSIGN)) {
             procExpr();
@@ -194,8 +216,7 @@ public class SyntaticAnalysis {
         match(Token.Type.SEMICOLON);
     }
 
-    // <let> ::= let <name> ':' <type> '=' <expr> { ',' <name> ':' <type> '=' <expr>
-    // } [';']
+    // <let> ::= let <name> ':' <type> '=' <expr> { ',' <name> ':' <type> '=' <expr> } [';']
     private void procLet() {
         eat(Token.Type.LET);
         procName();
@@ -284,37 +305,66 @@ public class SyntaticAnalysis {
     }
 
     // <assign> ::= [ <expr> '=' ] <expr> [ ';' ]
-    private void procAssign() {
-        procExpr();
+    private AssignCommand procAssign() {
+        int line = current.line;
+        Expr rhs = procExpr();
+
+        SetExpr lhs = null;
         if (match(Token.Type.ASSIGN)) {
-            procExpr();
+            if (!(rhs instanceof SetExpr))
+                throw LanguageException.instance(previous.line, LanguageException.Error.InvalidOperation);
+
+            lhs = (SetExpr) rhs;
+            rhs = procExpr();
         }
 
         match(Token.Type.SEMICOLON);
+
+        AssignCommand acmd = new AssignCommand(line, rhs, lhs);
+        return acmd;
     }
 
     // <type> ::= <primitive> | <composed>
-    private void procType() {
+    private Type procType() {
         if (check(Token.Type.BOOL, Token.Type.INT, Token.Type.FLOAT,
                 Token.Type.CHAR, Token.Type.STRING)) {
-            procPrimitive();
+            return procPrimitive();
         } else if (check(Token.Type.ARRAY, Token.Type.DICT)) {
-            procComposed();
+            return procComposed();
         } else {
             reportError();
+            return null;
         }
     }
 
     // <primitive> ::= Bool | Int | Float | Char | String
-    private void procPrimitive() {
+    private PrimitiveType procPrimitive() {
         if (match(Token.Type.BOOL, Token.Type.INT,
                 Token.Type.FLOAT, Token.Type.CHAR, Token.Type.STRING)) {
+            switch (previous.type) {
+                case BOOL:
+                    return BoolType.instance();
+                case INT:
+                    return IntType.instance();
+                case FLOAT:
+                    return FloatType.instance();
+                case CHAR:
+                    return CharType.instance();
+                case STRING:
+                    return StringType.instance();
+                default:
+                    reportError();
+            }
             // Do nothing.
+        } else {
+            reportError();
         }
+
+        return null;
     }
 
     // <composed> ::= <arraytype> | <dicttype>
-    private void procComposed() {
+    private ComposedType procComposed() {
         if (check(Token.Type.ARRAY)) {
             procArrayType();
         } else if (check(Token.Type.DICT)) {
@@ -322,6 +372,8 @@ public class SyntaticAnalysis {
         } else {
             reportError();
         }
+
+        return null;
     }
 
     // <arraytype> ::= Array '<' <type> '>'
@@ -581,7 +633,7 @@ public class SyntaticAnalysis {
         } else if (check(Token.Type.DICT)) {
             procDict();
         } else if (check(Token.Type.NAME)) {
-            procLValue();
+            expr = procLValue();
         } else {
             reportError();
         }
@@ -631,7 +683,7 @@ public class SyntaticAnalysis {
         return value;
     }
 
-    // <action> ::= ( read | random ) '(' ')'
+    // <action> ::= ( read  | random ) '(' ')'
     private void procAction() {
         if (match(Token.Type.READ, Token.Type.RANDOM)) {
             // Do nothing.
@@ -688,12 +740,17 @@ public class SyntaticAnalysis {
     }
 
     // <lvalue> ::= <name> { '[' <expr> ']' }
-    private void procLValue() {
-        procName();
+    private SetExpr procLValue() {
+        Token name = procName();
+        SetExpr sexpr = this.environment.get(name);
+
+
         while (match(Token.Type.OPEN_BRA)) {
             procExpr();
             eat(Token.Type.CLOSE_BRA);
         }
+
+        return sexpr;
     }
 
     // <function> ::= { '.' ( <fnoargs> | <fonearg> ) }
@@ -734,8 +791,9 @@ public class SyntaticAnalysis {
         eat(Token.Type.CLOSE_PAR);
     }
 
-    private void procName() {
+    private Token procName() {
         eat(Token.Type.NAME);
+        return previous;
     }
 
     private Value procInt() {

@@ -1,0 +1,8 @@
+var x : Int;
+x = 10;
+{
+    var x : Int;
+    x = 20;
+    println(x);
+}
+println(x);
