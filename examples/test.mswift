@@ -1,8 +1,10 @@
-var x : Int;
-x = 10;
-{
-    var x : Int;
-    x = 20;
-    println(x);
+var x: Int;
+x = 0;
+
+while (x < 10) {
+let y: Int = 2;
+    println(x * y);
+    x = x + 1;
 }
-println(x);
+
+println(x)

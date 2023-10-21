@@ -14,33 +14,33 @@ import interpreter.value.Value;
 
 public class BinaryExpr extends Expr {
 
-    public static enum BinaryOp {
-        AndOp,
-        OrOp,
-        EqualOp,
-        NotEqualOp,
-        LowerThanOp,
-        LowerEqualOp,
-        GreaterThanOp,
-        GreaterEqualOp,
-        AddOp,
-        SubOp,
-        MulOp,
-        DivOp
+    public static enum Op {
+        And,
+        Or,
+        Equal,
+        NotEqual,
+        LowerThan,
+        LowerEqual,
+        GreaterThan,
+        GreaterEqual,
+        Add,
+        Sub,
+        Mul,
+        Div
     }
 
     private Expr left;
+    private Op op;
     private Expr right;
-    private BinaryOp op;
 
-    public BinaryExpr(int line, Expr left, BinaryOp op, Expr right) {
-
+    public BinaryExpr(int line, Expr left, Op op, Expr right) {
         super(line);
         this.left = left;
-        this.right = right;
         this.op = op;
+        this.right = right;
     }
 
+    @Override
     public Value expr() {
 
         Value leftValue = left.expr();
@@ -52,40 +52,40 @@ public class BinaryExpr extends Expr {
                     rightValue.type.toString());
 
         switch (op) {
-            case AndOp:
+            case And:
                 ret = andOp(leftValue, rightValue);
                 break;
-            case OrOp:
+            case Or:
                 ret = orOp(leftValue, rightValue);
                 break;
-            case EqualOp:
+            case Equal:
                 ret = equalOp(leftValue, rightValue);
                 break;
-            case NotEqualOp:
+            case NotEqual:
                 ret = notEqualOp(leftValue, rightValue);
                 break;
-            case LowerThanOp:
+            case LowerThan:
                 ret = lowerThanOp(leftValue, rightValue);
                 break;
-            case LowerEqualOp:
+            case LowerEqual:
                 ret = lowerEqualOp(leftValue, rightValue);
                 break;
-            case GreaterThanOp:
+            case GreaterThan:
                 ret = greaterThanOp(leftValue, rightValue);
                 break;
-            case GreaterEqualOp:
+            case GreaterEqual:
                 ret = greaterEqualOp(leftValue, rightValue);
                 break;
-            case AddOp:
+            case Add:
                 ret = addOp(leftValue, rightValue);
                 break;
-            case SubOp:
+            case Sub:
                 ret = subOp(leftValue, rightValue);
                 break;
-            case MulOp:
+            case Mul:
                 ret = mulOp(leftValue, rightValue);
                 break;
-            case DivOp:
+            case Div:
                 ret = divOp(leftValue, rightValue);
                 break;
             default:
@@ -130,31 +130,31 @@ public class BinaryExpr extends Expr {
     }
 
     private Value lowerThanOp(Value leftValue, Value rightValue) {
-        
+
         switch (leftValue.type.getCategory()) {
             case Int:
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
-                return new Value(IntType.instance(), il < ir);
+                return new Value(BoolType.instance(), il < ir);
 
             case Float:
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
-                return new Value(FloatType.instance(), fl < fr);
+                return new Value(BoolType.instance(), fl < fr);
 
             case Char:
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
-                return new Value(CharType.instance(), cl < cr);
+                return new Value(BoolType.instance(), cl < cr);
 
             case String:
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
-                return new Value(CharType.instance(), sl.length() < sr.length());
+                return new Value(BoolType.instance(), sl.length() < sr.length());
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
@@ -169,25 +169,25 @@ public class BinaryExpr extends Expr {
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
-                return new Value(IntType.instance(), il <= ir);
+                return new Value(BoolType.instance(), il <= ir);
 
             case Float:
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
-                return new Value(FloatType.instance(), fl <= fr);
+                return new Value(BoolType.instance(), fl <= fr);
 
             case Char:
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
-                return new Value(CharType.instance(), cl <= cr);
+                return new Value(BoolType.instance(), cl <= cr);
 
             case String:
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
-                return new Value(CharType.instance(), sl.length() <= sr.length());
+                return new Value(BoolType.instance(), sl.length() <= sr.length());
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
@@ -202,25 +202,25 @@ public class BinaryExpr extends Expr {
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
-                return new Value(IntType.instance(), il > ir);
+                return new Value(BoolType.instance(), il > ir);
 
             case Float:
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
-                return new Value(FloatType.instance(), fl > fr);
+                return new Value(BoolType.instance(), fl > fr);
 
             case Char:
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
-                return new Value(CharType.instance(), cl > cr);
+                return new Value(BoolType.instance(), cl > cr);
 
             case String:
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
-                return new Value(CharType.instance(), sl.length() > sr.length());
+                return new Value(BoolType.instance(), sl.length() > sr.length());
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation,
@@ -235,25 +235,25 @@ public class BinaryExpr extends Expr {
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
-                return new Value(IntType.instance(), il >= ir);
+                return new Value(BoolType.instance(), il >= ir);
 
             case Float:
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
-                return new Value(FloatType.instance(), fl >= fr);
+                return new Value(BoolType.instance(), fl >= fr);
 
             case Char:
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
-                return new Value(CharType.instance(), cl >= cr);
+                return new Value(BoolType.instance(), cl >= cr);
 
             case String:
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
-                return new Value(CharType.instance(), sl.length() >= sr.length());
+                return new Value(BoolType.instance(), sl.length() >= sr.length());
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation,
@@ -280,7 +280,7 @@ public class BinaryExpr extends Expr {
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
-                return new Value(CharType.instance(), (char)(cl + cr));
+                return new Value(CharType.instance(), (char) (cl + cr));
 
             case String:
                 String sl = ((String) leftValue.data);
@@ -288,7 +288,7 @@ public class BinaryExpr extends Expr {
 
                 return new Value(CharType.instance(), sl + sr);
 
-            case Array: 
+            case Array:
                 List<Object> al = ((ArrayList<Object>) leftValue.data);
                 List<Object> ar = ((ArrayList<Object>) rightValue.data);
 
