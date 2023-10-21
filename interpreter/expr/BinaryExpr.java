@@ -1,11 +1,13 @@
 package interpreter.expr;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import error.LanguageException;
+import interpreter.type.Type.Category;
 import interpreter.type.primitive.BoolType;
 import interpreter.type.primitive.CharType;
 import interpreter.type.primitive.FloatType;
@@ -46,10 +48,6 @@ public class BinaryExpr extends Expr {
         Value leftValue = left.expr();
         Value rightValue = right.expr();
         Value ret = null;
-
-        if (!leftValue.type.match(rightValue.type))
-            throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
-                    rightValue.type.toString());
 
         switch (op) {
             case And:
@@ -97,8 +95,15 @@ public class BinaryExpr extends Expr {
 
     private Value andOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Bool);
+
         BoolType btype = BoolType.instance();
         if (btype.match(leftValue.type)) {
+
+            if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                        rightValue.type.toString());
+
             boolean il = ((Boolean) leftValue.data).booleanValue();
             boolean ir = ((Boolean) rightValue.data).booleanValue();
             return new Value(btype, il && ir);
@@ -110,8 +115,15 @@ public class BinaryExpr extends Expr {
 
     private Value orOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Bool);
+
         BoolType btype = BoolType.instance();
         if (btype.match(leftValue.type)) {
+            
+            if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                        rightValue.type.toString());
+
             boolean il = ((Boolean) leftValue.data).booleanValue();
             boolean ir = ((Boolean) rightValue.data).booleanValue();
             return new Value(btype, il || ir);
@@ -122,35 +134,67 @@ public class BinaryExpr extends Expr {
     }
 
     private Value equalOp(Value leftValue, Value rightValue) {
+
+        if (!leftValue.type.match(rightValue.type))
+            throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                    rightValue.type.toString());
+
         return new Value(BoolType.instance(), leftValue.data.equals(rightValue.data));
     }
 
     private Value notEqualOp(Value leftValue, Value rightValue) {
+
+        if (!leftValue.type.match(rightValue.type))
+            throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                    rightValue.type.toString());
+
         return new Value(BoolType.instance(), !leftValue.data.equals(rightValue.data));
     }
 
     private Value lowerThanOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Int, Category.Float, Category.Char, Category.String);
+
         switch (leftValue.type.getCategory()) {
             case Int:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
                 return new Value(BoolType.instance(), il < ir);
 
             case Float:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
                 return new Value(BoolType.instance(), fl < fr);
 
             case Char:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
                 return new Value(BoolType.instance(), cl < cr);
 
             case String:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
@@ -158,32 +202,54 @@ public class BinaryExpr extends Expr {
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
-                        rightValue.type.toString());
+                        leftValue.type.toString());
         }
     }
 
     private Value lowerEqualOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Int, Category.Float, Category.Char, Category.String);
+
         switch (leftValue.type.getCategory()) {
             case Int:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
                 return new Value(BoolType.instance(), il <= ir);
 
             case Float:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
                 return new Value(BoolType.instance(), fl <= fr);
 
             case Char:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
                 return new Value(BoolType.instance(), cl <= cr);
 
             case String:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
@@ -191,32 +257,53 @@ public class BinaryExpr extends Expr {
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
-                        rightValue.type.toString());
+                        leftValue.type.toString());
         }
     }
 
     private Value greaterThanOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Int, Category.Float, Category.Char, Category.String);
+
         switch (leftValue.type.getCategory()) {
             case Int:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
                 return new Value(BoolType.instance(), il > ir);
 
             case Float:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
                 return new Value(BoolType.instance(), fl > fr);
 
             case Char:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
                 return new Value(BoolType.instance(), cl > cr);
 
             case String:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
@@ -224,32 +311,54 @@ public class BinaryExpr extends Expr {
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation,
-                        rightValue.type.toString());
+                        leftValue.type.toString());
         }
     }
 
     private Value greaterEqualOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Int, Category.Float, Category.Char, Category.String);
+
         switch (leftValue.type.getCategory()) {
             case Int:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
                 return new Value(BoolType.instance(), il >= ir);
 
             case Float:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
                 return new Value(BoolType.instance(), fl >= fr);
 
             case Char:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
                 return new Value(BoolType.instance(), cl >= cr);
 
             case String:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
@@ -257,38 +366,65 @@ public class BinaryExpr extends Expr {
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation,
-                        rightValue.type.toString());
+                        leftValue.type.toString());
         }
     }
 
     private Value addOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Int, Category.Float, Category.Char, Category.String, Category.Array, Category.Dict);
+
         switch (leftValue.type.getCategory()) {
             case Int:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
                 return new Value(IntType.instance(), il + ir);
 
             case Float:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
                 return new Value(FloatType.instance(), fl + fr);
 
             case Char:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 char cl = ((Character) leftValue.data).charValue();
                 char cr = ((Character) rightValue.data).charValue();
 
                 return new Value(CharType.instance(), (char) (cl + cr));
 
             case String:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
                 return new Value(CharType.instance(), sl + sr);
 
             case Array:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 List<Object> al = ((ArrayList<Object>) leftValue.data);
                 List<Object> ar = ((ArrayList<Object>) rightValue.data);
 
@@ -299,6 +435,11 @@ public class BinaryExpr extends Expr {
                 return new Value(leftValue.type, aResult);
 
             case Dict:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 Map<Object, Object> ml = ((Map<Object, Object>) leftValue.data);
                 Map<Object, Object> mr = ((Map<Object, Object>) rightValue.data);
 
@@ -317,14 +458,26 @@ public class BinaryExpr extends Expr {
 
     private Value subOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Int, Category.Float);
+
         switch (leftValue.type.getCategory()) {
             case Int:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
                 return new Value(IntType.instance(), il - ir);
 
             case Float:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
@@ -338,14 +491,26 @@ public class BinaryExpr extends Expr {
 
     private Value mulOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Int, Category.Float);
+
         switch (leftValue.type.getCategory()) {
             case Int:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
                 return new Value(IntType.instance(), il * ir);
 
             case Float:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
@@ -359,14 +524,26 @@ public class BinaryExpr extends Expr {
 
     private Value divOp(Value leftValue, Value rightValue) {
 
+        List<Category> allowedCategories = Arrays.asList(Category.Int, Category.Float);
+
         switch (leftValue.type.getCategory()) {
             case Int:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
                 return new Value(IntType.instance(), il / ir);
 
             case Float:
+
+                if (!leftValue.type.match(rightValue.type) || !allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
                 float fl = ((Float) leftValue.data).floatValue();
                 float fr = ((Float) rightValue.data).floatValue();
 
