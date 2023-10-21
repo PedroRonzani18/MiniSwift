@@ -76,7 +76,7 @@ public class LexicalAnalysis implements AutoCloseable {
         keywords.put("toInt", Token.Type.TO_INT);
         keywords.put("toFloat", Token.Type.TO_FLOAT);
         keywords.put("toChar", Token.Type.TO_CHAR);
-        keywords.put("toString ", Token.Type.TO_STRING);
+        keywords.put("toString", Token.Type.TO_STRING);
         keywords.put("count", Token.Type.COUNT);
         keywords.put("empty", Token.Type.EMPTY);
         keywords.put("keys", Token.Type.KEYS);
