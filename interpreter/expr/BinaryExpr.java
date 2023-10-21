@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import error.LanguageException;
-import interpreter.type.Type;
-import interpreter.type.composed.ArrayType;
-import interpreter.type.composed.DictType;
 import interpreter.type.primitive.BoolType;
 import interpreter.type.primitive.CharType;
 import interpreter.type.primitive.FloatType;
@@ -226,7 +223,7 @@ public class BinaryExpr extends Expr {
                 return new Value(CharType.instance(), sl.length() > sr.length());
 
             default:
-                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation,
                         rightValue.type.toString());
         }
     }
@@ -259,7 +256,7 @@ public class BinaryExpr extends Expr {
                 return new Value(CharType.instance(), sl.length() >= sr.length());
 
             default:
-                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation,
                         rightValue.type.toString());
         }
     }
@@ -291,7 +288,7 @@ public class BinaryExpr extends Expr {
 
                 return new Value(CharType.instance(), sl + sr);
 
-            case Array: // TODO: Cnoferir se ta certo
+            case Array: 
                 List<Object> al = ((ArrayList<Object>) leftValue.data);
                 List<Object> ar = ((ArrayList<Object>) rightValue.data);
 
@@ -299,11 +296,9 @@ public class BinaryExpr extends Expr {
                 aResult.addAll(al);
                 aResult.addAll(ar);
 
-                Type at = ((ArrayType) leftValue.type).getInnerType();
+                return new Value(leftValue.type, aResult);
 
-                return new Value(ArrayType.instance(at), aResult);
-
-            case Dict:// TODO: Cnoferir se ta certo
+            case Dict:
                 Map<Object, Object> ml = ((Map<Object, Object>) leftValue.data);
                 Map<Object, Object> mr = ((Map<Object, Object>) rightValue.data);
 
@@ -311,13 +306,10 @@ public class BinaryExpr extends Expr {
                 mResult.putAll(ml);
                 mResult.putAll(mr);
 
-                Type keyType = ((DictType) leftValue.type).getKeyType();
-                Type valueType = ((DictType) leftValue.type).getValueType();
-
-                return new Value(DictType.instance(keyType, valueType), mResult);
+                return new Value(leftValue.type, mResult);
 
             default:
-                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation,
                         leftValue.type.toString());
         }
 
@@ -339,7 +331,7 @@ public class BinaryExpr extends Expr {
                 return new Value(FloatType.instance(), fl - fr);
 
             default:
-                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation,
                         leftValue.type.toString());
         }
     }
