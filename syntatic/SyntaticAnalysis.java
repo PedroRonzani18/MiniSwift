@@ -441,9 +441,7 @@ public class SyntaticAnalysis {
             Expr rightExpr = procRel();
 
             if (op != null)
-                rightExpr = new BinaryExpr(line, leftExpr, op, rightExpr);
-
-            return rightExpr;
+                leftExpr = new BinaryExpr(line, leftExpr, op, rightExpr);
         }
 
         return leftExpr;
@@ -494,9 +492,8 @@ public class SyntaticAnalysis {
             Expr rightExpr = procArith();
 
             if (op != null)
-                rightExpr = new BinaryExpr(line, leftExpr, op, rightExpr);
+                leftExpr = new BinaryExpr(line, leftExpr, op, rightExpr);
 
-            return rightExpr;
         }
 
         return leftExpr;
@@ -530,9 +527,7 @@ public class SyntaticAnalysis {
             Expr rightExpr = procTerm();
 
             if (op != null)
-                rightExpr = new BinaryExpr(line, leftExpr, op, rightExpr);
-
-            return rightExpr;
+                leftExpr = new BinaryExpr(line, leftExpr, op, rightExpr);
         }
 
         return leftExpr;
@@ -566,9 +561,7 @@ public class SyntaticAnalysis {
             Expr rightExpr = procPrefix();
 
             if (op != null)
-                rightExpr = new BinaryExpr(line, leftExpr, op, rightExpr);
-
-            return rightExpr;
+                leftExpr = new BinaryExpr(line, leftExpr, op, rightExpr);
         }
 
         return leftExpr;
