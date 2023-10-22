@@ -12,6 +12,7 @@ import interpreter.type.primitive.BoolType;
 import interpreter.type.primitive.CharType;
 import interpreter.type.primitive.FloatType;
 import interpreter.type.primitive.IntType;
+import interpreter.type.primitive.StringType;
 import interpreter.value.Value;
 
 public class BinaryExpr extends Expr {
@@ -97,22 +98,23 @@ public class BinaryExpr extends Expr {
 
         List<Category> allowedCategories = Arrays.asList(Category.Bool);
 
-        BoolType btype = BoolType.instance();
-        if (btype.match(leftValue.type)) {
+        switch (leftValue.type.getCategory()) {
+            case Bool:
 
-            if (!allowedCategories.contains(rightValue.type.getCategory()))
+                if (!allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
+
+                if (!leftValue.type.match(rightValue.type))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
+                boolean il = ((Boolean) leftValue.data).booleanValue();
+                boolean ir = ((Boolean) rightValue.data).booleanValue();
+
+                return new Value(BoolType.instance(), il && ir);
+
+            default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
-
-            if (!leftValue.type.match(rightValue.type))
-                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
-                        rightValue.type.toString());
-
-            boolean il = ((Boolean) leftValue.data).booleanValue();
-            boolean ir = ((Boolean) rightValue.data).booleanValue();
-            return new Value(btype, il && ir);
-        } else {
-            throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
-                    leftValue.type.toString());
         }
     }
 
@@ -120,22 +122,23 @@ public class BinaryExpr extends Expr {
 
         List<Category> allowedCategories = Arrays.asList(Category.Bool);
 
-        BoolType btype = BoolType.instance();
-        if (btype.match(leftValue.type)) {
+        switch (leftValue.type.getCategory()) {
+            case Bool:
 
-            if (!allowedCategories.contains(rightValue.type.getCategory()))
+                if (!allowedCategories.contains(rightValue.type.getCategory()))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
+
+                if (!leftValue.type.match(rightValue.type))
+                    throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                            rightValue.type.toString());
+
+                boolean il = ((Boolean) leftValue.data).booleanValue();
+                boolean ir = ((Boolean) rightValue.data).booleanValue();
+
+                return new Value(BoolType.instance(), il || ir);
+
+            default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
-
-            if (!leftValue.type.match(rightValue.type))
-                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
-                        rightValue.type.toString());
-
-            boolean il = ((Boolean) leftValue.data).booleanValue();
-            boolean ir = ((Boolean) rightValue.data).booleanValue();
-            return new Value(btype, il || ir);
-        } else {
-            throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
-                    leftValue.type.toString());
         }
     }
 
@@ -304,6 +307,7 @@ public class BinaryExpr extends Expr {
                 if (!leftValue.type.match(rightValue.type))
                     throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
                             rightValue.type.toString());
+
                 int il = ((Integer) leftValue.data).intValue();
                 int ir = ((Integer) rightValue.data).intValue();
 
@@ -428,6 +432,7 @@ public class BinaryExpr extends Expr {
                 Category.Array, Category.Dict);
 
         switch (leftValue.type.getCategory()) {
+
             case Int:
 
                 if (!allowedCategories.contains(rightValue.type.getCategory()))
@@ -482,7 +487,7 @@ public class BinaryExpr extends Expr {
                 String sl = ((String) leftValue.data);
                 String sr = ((String) rightValue.data);
 
-                return new Value(CharType.instance(), sl + sr);
+                return new Value(StringType.instance(), sl + sr);
 
             case Array:
 
@@ -523,7 +528,6 @@ public class BinaryExpr extends Expr {
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
         }
-
     }
 
     private Value subOp(Value leftValue, Value rightValue) {
