@@ -37,7 +37,7 @@ public class DictExpr extends Expr {
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
                         valueValue.type.toString());
 
-            returnItems.put(dictItem.key, dictItem.value);
+            returnItems.put(keyValue.data, valueValue.data);
         }
 
         return new Value(type, returnItems);
