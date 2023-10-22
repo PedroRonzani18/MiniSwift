@@ -20,16 +20,17 @@ public class WhileCommand extends Command {
     public void execute() {
         do {
             Value value = expr.expr();
+            
             BoolType boolType = BoolType.instance();
-            if (boolType.match(value.type)) {
-                boolean b = (Boolean) value.data;
-                if (!b)
-                    break;
-                
-                cmds.execute();
-            } else {
-                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType, value.type.toString());
-            }
+            if (!boolType.match(value.type))
+                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                        value.type.toString());
+
+            boolean conditional = (Boolean) value.data;
+            if (!conditional)
+                break;
+
+            cmds.execute();
         } while (true);
     }
 
