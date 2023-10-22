@@ -13,7 +13,7 @@ public class UnaryExpr extends Expr {
 
     private Expr expr;
     private Op op;
-    
+
     public UnaryExpr(int line, Expr expr, Op op) {
         super(line);
         this.expr = expr;
@@ -22,8 +22,10 @@ public class UnaryExpr extends Expr {
 
     @Override
     public Value expr() {
+
         Value value = expr.expr();
-        Value ret = null;
+        Value ret;
+
         switch (op) {
             case Not:
                 ret = notOp(value);
@@ -39,25 +41,33 @@ public class UnaryExpr extends Expr {
     }
 
     private Value notOp(Value value) {
+
         BoolType btype = BoolType.instance();
-        if (btype.match(value.type)) {
-            boolean b = ((Boolean) value.data).booleanValue();
-            return new Value(btype, !b);
-        } else {
-            throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType, value.type.toString());
-        }
+
+        if (!btype.match(value.type))
+            throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                    value.type.toString());
+
+        boolean b = ((Boolean) value.data).booleanValue();
+        return new Value(btype, !b);
+
     }
 
     private Value negOp(Value value) {
+
         switch (value.type.getCategory()) {
+
             case Int:
                 int n = ((Integer) value.data).intValue();
                 return new Value(value.type, -n);
+
             case Float:
                 float f = ((Float) value.data).floatValue();
                 return new Value(value.type, -f);
+
             default:
-                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType, value.type.toString());
+                throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
+                        value.type.toString());
         }
     }
 
