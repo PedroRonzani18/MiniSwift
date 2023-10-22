@@ -18,7 +18,6 @@ public class Variable extends SetExpr {
 
     public Variable(Token name, Type type, boolean constant) {
         super(name.line);
-
         this.name = name.lexeme;
         this.type = type;
         this.constant = constant;
@@ -53,6 +52,7 @@ public class Variable extends SetExpr {
     }
 
     private void write(Value value, boolean initialize) {
+        
         if (!initialize && this.isConstant())
             throw LanguageException.instance(super.getLine(), ConstantAssignment, name);
 
