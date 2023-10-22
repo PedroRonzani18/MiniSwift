@@ -28,15 +28,14 @@ public class IfCommand extends Command {
     public void execute() {
 
         Value value = expr.expr();
-        BoolType boolType = BoolType.instance();
 
-        if (!boolType.match(value.type))
+        if (!value.type.match(BoolType.instance()))
             throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
                     value.type.toString());
 
-        boolean b = (Boolean) value.data;
+        boolean conditional = (Boolean) value.data;
 
-        if (b)
+        if (conditional)
             thenCmds.execute();
         else if (elseCmds != null)
             elseCmds.execute();
