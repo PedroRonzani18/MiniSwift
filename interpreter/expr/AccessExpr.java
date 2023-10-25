@@ -25,6 +25,7 @@ public class AccessExpr extends SetExpr {
     }
 
     public Value expr() {
+
         Value baseValue = base.expr();
         Value indexValue = index.expr();
 
@@ -108,7 +109,7 @@ public class AccessExpr extends SetExpr {
                 charArray[index] = (Character) value.data;
                 str = new String(charArray);
 
-                ((Variable) base).setValue(new Value(StringType.instance(), str));
+                base.setValue(new Value(StringType.instance(), str));
 
                 break;
 
@@ -123,14 +124,14 @@ public class AccessExpr extends SetExpr {
                 if (!(value.type.match(innerType)))
                     throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
 
-                List<Object> ll = ((ArrayList<Object>) baseValue.data);
+                List<Object> arr = ((ArrayList<Object>) baseValue.data);
 
                 index = (int) indexValue.data;
 
-                if (index < 0 || ll.size() <= index)
+                if (index < 0 || arr.size() <= index)
                     throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
 
-                ll.set(index, value.data);
+                arr.set(index, value.data);
 
                 break;
 
@@ -140,7 +141,7 @@ public class AccessExpr extends SetExpr {
                     throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
                             indexValue.type.toString());
 
-                Map<Object, Object> ml = ((HashMap<Object, Object>) baseValue.data);
+                Map<Object, Object> mp = ((HashMap<Object, Object>) baseValue.data);
 
                 Type innerValueType = ((DictType) baseValue.type).getValueType();
 
@@ -149,7 +150,7 @@ public class AccessExpr extends SetExpr {
 
                 Object key = indexValue.data;
 
-                ml.put(key, value.data);
+                mp.put(key, value.data);
 
                 break;
 
