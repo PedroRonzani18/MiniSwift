@@ -7,7 +7,7 @@ while ok {
     /* Build the char map for this word */
     let charmap : Dict<Char,Int> = Dict<Char,Int>()
     for let c : Char in word
-        if ((c >= 'A' && c <= 'Z') || (c >= 'A' && c <= 'Z'))
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
             charmap[c] = charmap.keys().contains(c) ? charmap[c]+1 : 1
 
     /* Read an anagram of this word */
@@ -16,7 +16,7 @@ while ok {
 
     /* Check its properties */
     for let c : Char in anagram
-        if ((c >= 'A' && c <= 'Z') || (c >= 'A' && c <= 'Z'))
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
             charmap[c] = charmap.keys().contains(c) ? charmap[c]-1 : -1
 
     /* Build a report */
