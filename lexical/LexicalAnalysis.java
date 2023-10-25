@@ -278,7 +278,7 @@ public class LexicalAnalysis implements AutoCloseable {
                     }
 
                     break;
-                case 13: // L
+                case 13: // L ?
                     if (c == -1) {
                         token.type = Token.Type.UNEXPECTED_EOF;
                         state = 15;
