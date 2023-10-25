@@ -5,9 +5,7 @@ import static error.LanguageException.Error.UnexpectedEOF;
 import static error.LanguageException.Error.UnexpectedLexeme;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import error.InternalException;
 import error.LanguageException;
@@ -149,7 +147,7 @@ public class SyntaticAnalysis {
     private Command procCmd() {
 
         Command cmd = null;
-        
+
         if (check(Token.Type.OPEN_CUR)) {
             cmd = procBlock();
         } else if (check(Token.Type.VAR, Token.Type.LET)) {
@@ -697,7 +695,7 @@ public class SyntaticAnalysis {
 
         UnaryExpr.Op op = null;
         int line = -1;
-        
+
         if (match(Token.Type.NOT, Token.Type.SUB)) {
             switch (previous.type) {
                 case NOT:
@@ -726,26 +724,14 @@ public class SyntaticAnalysis {
 
         Expr expr;
 
-        int line = -1;
-
         if (match(Token.Type.OPEN_PAR)) {
             expr = procExpr();
-            line = current.line;
             eat(Token.Type.CLOSE_PAR);
         } else {
             expr = procRValue();
-            line = current.line;
         }
 
-        List<FunctionExpr> fexprList = procFunction();
-
-        for (FunctionExpr functionExpr : fexprList) {
-
-            if (functionExpr.getArg() != null)
-                expr = new FunctionExpr(line, functionExpr.getOp(), expr, functionExpr.getArg());
-            else
-                expr = new FunctionExpr(line, functionExpr.getOp(), expr);
-        }
+        expr  = procFunction(expr);
 
         return expr;
     }
@@ -978,48 +964,27 @@ public class SyntaticAnalysis {
     }
 
     // <function> ::= { '.' ( <fnoargs> | <fonearg> ) }
-    private List<FunctionExpr> procFunction() {
-
-        List<FunctionExpr> fexprList = new ArrayList<>();
+    private Expr procFunction(Expr expr) {
 
         while (match(Token.Type.DOT)) {
 
-            FunctionExpr.Op op;
-            Map<FunctionExpr.Op, Expr> retMap;
-
-            int line = current.line;
-
-            FunctionExpr fexpr = null;
-
-            if (check(Token.Type.COUNT, Token.Type.EMPTY, Token.Type.KEYS, Token.Type.VALUES)) {
-
-                op = procFNoArgs();
-
-                fexpr = new FunctionExpr(line, op, null);
-
-            } else if (check(Token.Type.APPEND, Token.Type.CONTAINS)) {
-
-                retMap = procFOneArg();
-
-                List<FunctionExpr.Op> arrOp = new ArrayList<>(retMap.keySet());
-                List<Expr> arrFexp = new ArrayList<>(retMap.values());
-
-                fexpr = new FunctionExpr(line, arrOp.get(0), null, arrFexp.get(0));
-
-            } else {
+            if (check(Token.Type.COUNT, Token.Type.EMPTY, Token.Type.KEYS, Token.Type.VALUES))
+                expr = procFNoArgs(expr);
+            else if (check(Token.Type.APPEND, Token.Type.CONTAINS))
+                expr = procFOneArg(expr);
+            else
                 reportError();
-            }
-
-            fexprList.add(fexpr);
         }
 
-        return fexprList;
+        return expr;
     }
 
     // <fnoargs> ::= ( count | empty | keys | values ) '(' ')'
-    private FunctionExpr.Op procFNoArgs() {
+    private FunctionExpr procFNoArgs(Expr expr) {
 
         FunctionExpr.Op op = null;
+
+        int line = current.line;
 
         if (match(Token.Type.COUNT, Token.Type.EMPTY, Token.Type.KEYS, Token.Type.VALUES)) {
 
@@ -1050,13 +1015,17 @@ public class SyntaticAnalysis {
         eat(Token.Type.OPEN_PAR);
         eat(Token.Type.CLOSE_PAR);
 
-        return op;
+        FunctionExpr fexpr = new FunctionExpr(line, op, expr, null);
+
+        return fexpr;
     }
 
     // <fonearg> ::= ( append | contains ) '(' <expr> ')'
-    private Map<FunctionExpr.Op, Expr> procFOneArg() {
+    private FunctionExpr procFOneArg(Expr expr) {
 
         FunctionExpr.Op op = null;
+
+        int line = current.line;
 
         if (match(Token.Type.APPEND, Token.Type.CONTAINS)) {
 
@@ -1070,7 +1039,7 @@ public class SyntaticAnalysis {
                     break;
 
                 default:
-                    reportError();
+                    throw new InternalError("Unreachable");
             }
 
         } else {
@@ -1081,9 +1050,9 @@ public class SyntaticAnalysis {
         Expr arg = procExpr();
         eat(Token.Type.CLOSE_PAR);
 
-        Map<FunctionExpr.Op, Expr> retMap = new HashMap<>();
-        retMap.put(op, arg);
-        return retMap;
+        FunctionExpr fexExpr = new FunctionExpr(line, op, expr, arg);
+
+        return fexExpr;
     }
 
     private Token procName() {
