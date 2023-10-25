@@ -41,16 +41,9 @@ public class FunctionExpr extends Expr {
         this.arg = null;
     }
 
-    public Expr getArg() {
-        return this.arg;
-    }
-
-    public Op getOp() { 
-        return this.op; 
-    }
-
     @Override
     public Value expr() {
+
         Value exprValue = expr.expr();
         Value argValue = arg != null ? arg.expr() : null;
         Value ret = null;
@@ -87,18 +80,17 @@ public class FunctionExpr extends Expr {
         switch (exprValue.type.getCategory()) {
             case String:
 
-                String sl = ((String) exprValue.data);
-                return new Value(IntType.instance(), sl.length());
+                String str = ((String) exprValue.data);
+                return new Value(IntType.instance(), str.length());
 
             case Array:
 
-                ArrayList<Object> al = ((ArrayList<Object>) exprValue.data);
-                return new Value(IntType.instance(), al.size());
+                ArrayList<Object> arr = ((ArrayList<Object>) exprValue.data);
+                return new Value(IntType.instance(), arr.size());
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
         }
-
     }
 
     public Value emptyOp(Value exprValue) {
@@ -106,18 +98,18 @@ public class FunctionExpr extends Expr {
         switch (exprValue.type.getCategory()) {
             case String:
 
-                String sl = ((String) exprValue.data);
-                return new Value(BoolType.instance(), sl.isEmpty());
+                String str = ((String) exprValue.data);
+                return new Value(BoolType.instance(), str.isEmpty());
 
             case Array:
 
-                List<Object> ll = ((ArrayList<Object>) exprValue.data);
-                return new Value(BoolType.instance(), ll.isEmpty());
+                List<Object> arr = ((ArrayList<Object>) exprValue.data);
+                return new Value(BoolType.instance(), arr.isEmpty());
 
             case Dict:
 
-                Map<Object, Object> ml = ((HashMap<Object, Object>) exprValue.data);
-                return new Value(BoolType.instance(), ml.isEmpty());
+                Map<Object, Object> mp = ((HashMap<Object, Object>) exprValue.data);
+                return new Value(BoolType.instance(), mp.isEmpty());
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
@@ -130,9 +122,9 @@ public class FunctionExpr extends Expr {
     
             case Dict:
             
-                Map<Object, Object> ml = ((HashMap<Object, Object>) exprValue.data);
+                Map<Object, Object> mp = ((HashMap<Object, Object>) exprValue.data);
 
-                List<Object> keysList = new ArrayList<Object>(ml.keySet());
+                List<Object> keysList = new ArrayList<Object>(mp.keySet());
 
                 return new Value(ArrayType.instance(((DictType)exprValue.type).getKeyType()), keysList);
 
@@ -142,13 +134,14 @@ public class FunctionExpr extends Expr {
     }
 
     public Value valuesOp(Value exprValue) {
+
         switch (exprValue.type.getCategory()) {
 
             case Dict:
 
-                Map<Object, Object> ml = ((HashMap<Object, Object>) exprValue.data);
+                Map<Object, Object> mp = ((HashMap<Object, Object>) exprValue.data);
 
-                List<Object> valuesList = new ArrayList<>(ml.values());
+                List<Object> valuesList = new ArrayList<>(mp.values());
 
                 return new Value(ArrayType.instance(((DictType)exprValue.type).getValueType()), valuesList);
 
@@ -167,16 +160,15 @@ public class FunctionExpr extends Expr {
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
                         argValue.type.toString());
 
-                List<Object> ll = ((ArrayList<Object>) exprValue.data);
+                List<Object> arr = ((ArrayList<Object>) exprValue.data);
 
-                ll.add(argValue.data);
+                arr.add(argValue.data);
 
-                return new Value(exprValue.type, ll);
+                return new Value(exprValue.type, arr);
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
         }
-
     }
 
     public Value containsOp(Value exprValue, Value argValue) {
@@ -189,13 +181,12 @@ public class FunctionExpr extends Expr {
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
                         argValue.type.toString());
 
-                List<Object> ll = ((ArrayList<Object>) exprValue.data);
+                List<Object> arr = ((ArrayList<Object>) exprValue.data);
 
-                return new Value(BoolType.instance(), ll.contains(argValue.data));
+                return new Value(BoolType.instance(), arr.contains(argValue.data));
 
             default:
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidOperation);
         }
-
     }
 }
