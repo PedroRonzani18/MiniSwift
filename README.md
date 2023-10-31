@@ -1,4 +1,4 @@
-# MiniSwift
+# Mini interpretador para Swift
 
 O objetivo desse trabalho é desenvolver um interpretador para um subconjunto de uma linguagem de programação conhecida. Para isso foi criada miniSwift, uma linguagem de programação de brinquedo baseada em Swift (https://www.swift.org). Essa linguagem possui tipagem estática e não possui valores indefinidos (nil).
 
