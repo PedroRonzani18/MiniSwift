@@ -11,7 +11,7 @@ O objetivo desse trabalho é desenvolver um interpretador para um subconjunto de
    ```bash
    java msi name.msft
    ```
-2. 2. para exeutar com instruções no terminal:
+2. para exeutar com instruções no terminal:
    ```bash
    java msi
    ```
