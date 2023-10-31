@@ -2,6 +2,20 @@
 
 O objetivo desse trabalho é desenvolver um interpretador para um subconjunto de uma linguagem de programação conhecida. Para isso foi criada miniSwift, uma linguagem de programação de brinquedo baseada em Swift (https://www.swift.org). Essa linguagem possui tipagem estática e não possui valores indefinidos (nil).
 
+## Execução
+1. para compilar, exeucte na pasta raiz:
+   ```bash
+   javac -classpath . $(find ./ -type f -name '*.java') 
+   ```
+2. para exeutar baseado em um arquivo:
+   ```bash
+   java msi name.msft
+   ```
+2. 2. para exeutar com instruções no terminal:
+   ```bash
+   java msi
+   ```
+
 ## Contextualização
 
 A seguir é dado um exemplo de utilização da linguagem miniSwift. O código a seguir verifica se duas palavras são anagramas.
