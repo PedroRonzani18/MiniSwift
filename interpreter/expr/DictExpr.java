@@ -29,11 +29,11 @@ public class DictExpr extends Expr {
             Value keyValue = dictItem.key.expr();
             Value valueValue = dictItem.value.expr();
 
-            if (!keyValue.type.getCategory().equals(type.getKeyType().getCategory()))
+            if (!keyValue.type.equals(type.getKeyType()))
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
                         keyValue.type.toString());
 
-            if (!valueValue.type.getCategory().equals(type.getValueType().getCategory()))
+            if (!valueValue.type.equals(type.getValueType()))
                 throw LanguageException.instance(super.getLine(), LanguageException.Error.InvalidType,
                         valueValue.type.toString());
 

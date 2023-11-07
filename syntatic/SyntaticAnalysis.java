@@ -78,7 +78,7 @@ public class SyntaticAnalysis {
         if (type == current.type) {
             advance();
         } else {
-            System.out.println("Expected (..., " + type + ", ..., ...), found " + current);
+            // System.out.println("Expected (..., " + type + ", ..., ...), found " + current);
             reportError();
         }
     }

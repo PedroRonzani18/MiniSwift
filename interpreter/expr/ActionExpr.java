@@ -30,7 +30,7 @@ public class ActionExpr extends Expr {
             case Read:
                 return new Value(StringType.instance(), in.nextLine().trim());
             case Random:
-                return new Value(FloatType.instance(), (new Random()).nextDouble());
+                return new Value(FloatType.instance(), (new Random()).nextFloat());
             default:
                 throw new InternalException("Unreachable");
         }

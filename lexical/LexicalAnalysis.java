@@ -167,6 +167,9 @@ public class LexicalAnalysis implements AutoCloseable {
                 case 3:
                     if (c == '*') {
                         state = 4;
+                    } else if (c == -1) {
+                        token.type = Token.Type.UNEXPECTED_EOF;
+                        state = 15;
                     }
                     break;
                 case 4:
@@ -174,6 +177,9 @@ public class LexicalAnalysis implements AutoCloseable {
                         state = 1;
                     } else if (c == '*') {
                         state = 4;
+                    } else if (c == -1) {
+                        token.type = Token.Type.UNEXPECTED_EOF;
+                        state = 15;
                     } else {
                         state = 3;
                     }
