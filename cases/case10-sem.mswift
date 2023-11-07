@@ -1,0 +1,4 @@
+for let x : Bool in Array<Bool>(true) {
+  println(x);
+}
+println(x);

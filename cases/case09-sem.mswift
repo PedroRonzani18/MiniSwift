@@ -1,0 +1,2 @@
+var x : Dict<String,Array<Float>> = Dict<String,Array<Float>>("f": Array<Int>(3,4,5));
+println(x["f"]);

@@ -1,0 +1,14 @@
+var x : Dict<String,Int> = Dict<String,Int>("one" : 1, "two" : 2, "three" : 3),
+    y : Dict<String,Int> = Dict<String,Int>("four: " : 4, "five" : 5, "six" : 6);
+var z : Dict<String,Int> = x + y;
+z["seven"] = 7;
+
+var s : Int = 0;
+for let n : Int in z.values() {
+  s = s + n;
+}
+
+if s != 28
+  println("error");
+else
+  println("okay");

@@ -1,0 +1,16 @@
+var y : Array<Int> = Array<Int>();
+for let c : Char in read() {
+  if (c >= '0' && c <= '9')
+    y.append(toInt(c) - toInt('0'));
+}
+
+var s : Float = 0.0;
+for let a : Int in y {
+  s = s + toFloat(a);
+}
+
+let error : Float = 0.000001;
+if s >= (10.0 - error) && s <= (10.0 + error)
+  println("okay");
+else
+  println("error");
